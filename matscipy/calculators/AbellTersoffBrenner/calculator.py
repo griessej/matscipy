@@ -832,12 +832,15 @@ def KumagaiTersoff():
     U2 = lambda r: A * epsilon * (B*np.power(sigma/r, p) - np.power(sigma/r, q)) * np.exp(sigma/(r-a*sigma))
 
     costh = lambda rij, rik: np.sum(rij*rik, axis=1) / (ab(rij)*ab(rik)) 
+    c1q = lambda rij, rik, q: (rik[:, q]/ab(rik) - rij[:, q]/ab(rij) * costh(rij, rik)) / ab(rij)
+    c2q = lambda rij, rik, q: (rij[:, q]/ab(rij) - rik[:, q]/ab(rik) * costh(rij, rik)) / ab(rik)
 
     g = lambda cost: np.power(cost - costheta0, 2) 
-
-    hf = lambda rij, rik: f(ab(rik)) * np.exp(alpha * (ab(rij) - ab(rik)))
+    dg = lambda cost: 2 * (cost - costheta0)
 
     hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij - a * sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
+    d1h = lambda rij, rik: -gamma * sigma / (rij - a * sigma) * hf(rij, rik)
+    d2h = lambda rij, rik: -gamma * sigma / (rik - a * sigma) * hf(rij, rik)
 
     return {
         'F': F,
