@@ -809,3 +809,40 @@ def KumagaiTersoff():
         'd1y2xG': lambda rij, rik: d1q2tG(rij, rik, 1, 0),
         'cutoff': R_2
     }
+
+def KumagaiTersoff():
+    epsilon = 2.1683
+    sigma = 2.0951
+    costheta0 = -0.333333333333
+    A = 7.049556277
+    B = 0.6022245584
+    p = 4
+    q = 0
+    a = 1.80
+    lambda_1 = 21.0 
+    gamma = 1.20
+
+    F = lambda r, xi: U2(r) + lambda_1 * xi
+    d1F = lambda r, xi: -sigma/np.power(r - a*sigma, 2) * U2(r) - \
+                        A*epsilon/r * (p * B * np.power(sigma/r, p) - sigma/r) * np.exp(sigma/(r-a*sigma))
+    d2F = lambda r, xi: lambda_1
+
+    G = lambda rij, rik: g(costh(rij, rik)) * hf(rij, rik)
+
+    U2 = lambda r: A * epsilon * (B*np.power(sigma/r, p) - np.power(sigma/r, q)) * np.exp(sigma/(r-a*sigma))
+
+    costh = lambda rij, rik: np.sum(rij*rik, axis=1) / (ab(rij)*ab(rik)) 
+
+    g = lambda cost: np.power(cost - costheta0, 2) 
+
+    hf = lambda rij, rik: f(ab(rik)) * np.exp(alpha * (ab(rij) - ab(rik)))
+
+    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij - a * sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
+
+    return {
+        'F': F,
+        'G': G,
+        'd1F': d1F,
+        'd2F': d2F,
+    }
+
