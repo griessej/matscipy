@@ -828,6 +828,8 @@ def KumagaiTersoff():
     d2F = lambda r, xi: lambda_1
 
     G = lambda rij, rik: g(costh(rij, rik)) * hf(rij, rik)
+    d1qG = lambda rij, rik, q: Dh1q(rij, rik, q) * g(costh(rij,rik)) + hf(rij, rik) * Dg1q(rij, rik, q)    
+    d2qG = lambda rij, rik, q: Dh2q(rij, rik, q) * g(costh(rij,rik)) + hf(rij, rik) * Dg2q(rij, rik, q)    
 
     U2 = lambda r: A * epsilon * (B*np.power(sigma/r, p) - np.power(sigma/r, q)) * np.exp(sigma/(r-a*sigma))
 
@@ -838,14 +840,26 @@ def KumagaiTersoff():
     g = lambda cost: np.power(cost - costheta0, 2) 
     dg = lambda cost: 2 * (cost - costheta0)
 
+    Dg1q = lambda rij, rik, q: dg(costh(rij, rik)) * c1q(rij, rik, q)
+    Dg2q = lambda rij, rik, q: dg(costh(rij, rik)) * c2q(rij, rik, q)
+
     hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij - a * sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
     d1h = lambda rij, rik: -gamma * sigma / (rij - a * sigma) * hf(rij, rik)
     d2h = lambda rij, rik: -gamma * sigma / (rik - a * sigma) * hf(rij, rik)
+
+    Dh1q = lambda rij, rik, q: d1h(rij, rik) * (rij[:, q] / ab(rij))
+    Dh2q = lambda rij, rik, q: d2h(rij, rik) * (rik[:, q] / ab(rik))
 
     return {
         'F': F,
         'G': G,
         'd1F': d1F,
         'd2F': d2F,
+        'd1xG': lambda rij, rik: d1qG(rij, rik, 0),
+        'd1yG': lambda rij, rik: d1qG(rij, rik, 1),
+        'd1zG': lambda rij, rik: d1qG(rij, rik, 2),
+        'd2xG': lambda rij, rik: d2qG(rij, rik, 0),
+        'd2yG': lambda rij, rik: d2qG(rij, rik, 1),
+        'd2zG': lambda rij, rik: d2qG(rij, rik, 2),
     }
 
