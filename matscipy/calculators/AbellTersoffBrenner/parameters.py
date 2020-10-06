@@ -23,14 +23,17 @@ Kumagai_CompMaterSci_39_457_Si = {
 Stillinger_Weber_PhysRevB_31_8_5262 = {
     "__ref__":  "F. Stillinder and T. Weber, \
              Physical review B 31.8 5262 (1985)",
-    "el":        "Si"        ,
-    "A":         7.049556277 ,
-    "B":         0.6022245584,
-    "p":         4           ,
-    "q":         0           ,
-    "a"          1.80        ,
-    "lambda":    21.0        ,
-    "gamma":     1.20        ,
+    "epsilon":   2.1683         ,
+    "sigma":     2.0951         ,
+    "costheta0": -0.333333333333,
+    "el":        "Si"           ,
+    "A":         7.049556277    ,
+    "B":         0.6022245584   ,
+    "p":         4              ,
+    "q":         0              ,
+    "a"          1.80           ,
+    "lambda_1":    21.0         ,
+    "gamma":     1.20           ,
 }
 
 
