@@ -810,7 +810,7 @@ def KumagaiTersoff():
         'cutoff': R_2
     }
 
-def KumagaiTersoff():
+def StillingerWeber():
     epsilon = 2.1683
     sigma = 2.0951
     costheta0 = -0.333333333333
@@ -823,43 +823,122 @@ def KumagaiTersoff():
     gamma = 1.20
 
     F = lambda r, xi: U2(r) + lambda_1 * xi
-    d1F = lambda r, xi: -sigma/np.power(r - a*sigma, 2) * U2(r) - \
-                        A*epsilon/r * (p * B * np.power(sigma/r, p) - sigma/r) * np.exp(sigma/(r-a*sigma))
+    d1F = lambda r, xi: -sigma / np.power(r-a*sigma, 2) * U2(r) - \
+                        (A * B * p * epsilon / r) * np.power(sigma/r, p) * np.exp(sigma/(r-a*sigma))
     d2F = lambda r, xi: lambda_1
-
-    G = lambda rij, rik: g(costh(rij, rik)) * hf(rij, rik)
-    d1qG = lambda rij, rik, q: Dh1q(rij, rik, q) * g(costh(rij,rik)) + hf(rij, rik) * Dg1q(rij, rik, q)    
-    d2qG = lambda rij, rik, q: Dh2q(rij, rik, q) * g(costh(rij,rik)) + hf(rij, rik) * Dg2q(rij, rik, q)    
+    d11F = lambda r, xi: sigma / np.power(r-a*sigma, 2) * (2 * U2(r) / (r-a*sigma) - d1F(r, xi)) + \
+                         (A * B * P * epsilon / r) * np.power(sigma/r, p) * (1/r * (p + 1) + sigma / np.power(r - a*sigma, 2)) * np.exp(sigma/(r-a*sigma))
+    d12F = lambda r, xi: 0
+    d22F = lambda r, xi: 0
 
     U2 = lambda r: A * epsilon * (B*np.power(sigma/r, p) - np.power(sigma/r, q)) * np.exp(sigma/(r-a*sigma))
+
+    g = lambda cost: np.power(cost - costheta0, 2) 
+    dg = lambda cost: 2 * (cost - costheta0)
+    ddg = lambda cost: 2
+
+    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij-a*sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
+    d1h = lambda rij, rik: -gamma * sigma / (rij - a * sigma) * hf(rij, rik)
+    d2h = lambda rij, rik: -gamma * sigma / (rik - a * sigma) * hf(rij, rik)
+    d11h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(rij-a*sigma, 4) * hf(rij, rik) + \
+                            2 * gamma * sigma / np.power(rij-a*sigma, 3) * hf(rij, rik)
+    d12h = lambda rij, rik: np.power(gamma*sigma, 2) / (np.power(rij-a*sigma, 2) * np.power(rik-a*sigma, 2)) * hf(rij, rik) 
+    d22h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(rik-a*sigma, 4) * hf(rij, rik) + \
+                            2 * gamma * sigma / np.power(rik-a*sigma, 3) * hf(rij, rik)
 
     costh = lambda rij, rik: np.sum(rij*rik, axis=1) / (ab(rij)*ab(rik)) 
     c1q = lambda rij, rik, q: (rik[:, q]/ab(rik) - rij[:, q]/ab(rij) * costh(rij, rik)) / ab(rij)
     c2q = lambda rij, rik, q: (rij[:, q]/ab(rij) - rik[:, q]/ab(rik) * costh(rij, rik)) / ab(rik)
 
-    g = lambda cost: np.power(cost - costheta0, 2) 
-    dg = lambda cost: 2 * (cost - costheta0)
+    dc1q1t = lambda rij, rik, q, t: \
+        (- c1q(rij, rik, q) * rij[:, t] \
+         - rij[:, q] * c1q(rij, rik, t) \
+         - costh(rij, rik) * (int(q == t) - rij[:, q]*rij[:, t]/ab(rij)**2) \
+        )/ab(rij)**2
+    dc2q2t = lambda rij, rik, q, t: \
+        (- c2q(rij, rik, q) * rik[:, t] \
+         - rik[:, q] * c2q(rij, rik, t) \
+         - costh(rij, rik) * (int(q == t) - rik[:, q]*rik[:, t]/ab(rik)**2) \
+        )/ab(rik)**2
+    dc1q2t = lambda rij, rik, q, t: \
+        ((int(q == t) - rij[:, q]*rij[:, t]/ab(rij)**2)/ab(rij)
+         - c1q(rij, rik, q) * rik[:, t]/ab(rik) \
+        )/ab(rik)
+
+    Dh1q = lambda rij, rik, q: d1h(rij, rik) * (rij[:, q] / ab(rij))
+    Dh2q = lambda rij, rik, q: d2h(rij, rik) * (rik[:, q] / ab(rik))
+
+    Dh1q1t = lambda rij, rik, q, t: \
+        d11h(rij, rik) * rij[:, q]/ab(rij) * rij[:, t]/ab(rij) \
+         + d1h(rij, rik) * (int(q == t) - rij[:, q]/ab(rij) * rij[:, t]/ab(rij))/ab(rij)
+    Dh2q2t = lambda rij, rik, q, t: \
+        d22h(rij, rik) * rik[:, q]/ab(rik) * rik[:, t]/ab(rik) \
+         + d2h(rij, rik) * (int(q == t) - rik[:, q]/ab(rik) * rik[:, t]/ab(rik))/ab(rik)
+    Dh1q2t = lambda rij, rik, q, t: \
+        d12h(rij, rik) * rij[:, q]/ab(rij) * rik[:, t]/ab(rik)
 
     Dg1q = lambda rij, rik, q: dg(costh(rij, rik)) * c1q(rij, rik, q)
     Dg2q = lambda rij, rik, q: dg(costh(rij, rik)) * c2q(rij, rik, q)
 
-    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij - a * sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
-    d1h = lambda rij, rik: -gamma * sigma / (rij - a * sigma) * hf(rij, rik)
-    d2h = lambda rij, rik: -gamma * sigma / (rik - a * sigma) * hf(rij, rik)
+    Dg1q1t = lambda rij, rik, q, t: \
+        (ddg(costh(rij, rik)) * c1q(rij, rik, q) * c1q(rij, rik, t)
+         + dg(costh(rij, rik)) * dc1q1t(rij, rik, q, t))
+    Dg2q2t = lambda rij, rik, q, t: \
+        (ddg(costh(rij, rik)) * c2q(rij, rik, q) * c2q(rij, rik, t)
+         + dg(costh(rij, rik)) * dc2q2t(rij, rik, q, t))
+    Dg1q2t = lambda rij, rik, q, t: \
+        (ddg(costh(rij, rik)) * c1q(rij, rik, q) * c2q(rij, rik, t)
+         + dg(costh(rij, rik)) * dc1q2t(rij, rik, q, t))
 
-    Dh1q = lambda rij, rik, q: d1h(rij, rik) * (rij[:, q] / ab(rij))
-    Dh2q = lambda rij, rik, q: d2h(rij, rik) * (rik[:, q] / ab(rik))
+    G = lambda rij, rik: g(costh(rij, rik)) * hf(rij, rik)
+    d1qG = lambda rij, rik, q: Dh1q(rij, rik, q) * g(costh(rij, rik)) + hf(rij, rik) * Dg1q(rij, rik, q)
+    d2qG = lambda rij, rik, q: Dh2q(rij, rik, q) * g(costh(rij, rik)) + hf(rij, rik) * Dg2q(rij, rik, q)
+
+    d1q1tG = lambda rij, rik, q, t: \
+        Dg1q(rij, rik, q) * Dh1q(rij, rik, t) + Dg1q(rij, rik, t) * Dh1q(rij, rik, q) \
+        + g(costh(rij, rik)) * Dh1q1t(rij, rik, q, t) + hf(rij, rik) * Dg1q1t(rij, rik, q, t)
+    d2q2tG = lambda rij, rik, q, t: \
+        Dg2q(rij, rik, q) * Dh2q(rij, rik, t) + Dg2q(rij, rik, t) * Dh2q(rij, rik, q) \
+        + g(costh(rij, rik)) * Dh2q2t(rij, rik, q, t) + hf(rij, rik) * Dg2q2t(rij, rik, q, t)
+    d1q2tG = lambda rij, rik, q, t: \
+        Dg1q(rij, rik, q) * Dh2q(rij, rik, t) + Dg2q(rij, rik, t) * Dh1q(rij, rik, q) \
+        + g(costh(rij, rik)) * Dh1q2t(rij, rik, q, t) + hf(rij, rik) * Dg1q2t(rij, rik, q, t)
 
     return {
         'F': F,
         'G': G,
         'd1F': d1F,
         'd2F': d2F,
+        'd11F': d11F,
+        'd12F': d12F,
+        'd22F': d22F,
         'd1xG': lambda rij, rik: d1qG(rij, rik, 0),
         'd1yG': lambda rij, rik: d1qG(rij, rik, 1),
         'd1zG': lambda rij, rik: d1qG(rij, rik, 2),
         'd2xG': lambda rij, rik: d2qG(rij, rik, 0),
         'd2yG': lambda rij, rik: d2qG(rij, rik, 1),
         'd2zG': lambda rij, rik: d2qG(rij, rik, 2),
+        'd1x1xG': lambda rij, rik: d1q1tG(rij, rik, 0, 0),
+        'd1y1yG': lambda rij, rik: d1q1tG(rij, rik, 1, 1),
+        'd1z1zG': lambda rij, rik: d1q1tG(rij, rik, 2, 2),
+        'd1y1zG': lambda rij, rik: d1q1tG(rij, rik, 1, 2),
+        'd1x1zG': lambda rij, rik: d1q1tG(rij, rik, 0, 2),
+        'd1x1yG': lambda rij, rik: d1q1tG(rij, rik, 0, 1),
+        'd2x2xG': lambda rij, rik: d2q2tG(rij, rik, 0, 0),
+        'd2y2yG': lambda rij, rik: d2q2tG(rij, rik, 1, 1),
+        'd2z2zG': lambda rij, rik: d2q2tG(rij, rik, 2, 2),
+        'd2y2zG': lambda rij, rik: d2q2tG(rij, rik, 1, 2),
+        'd2x2zG': lambda rij, rik: d2q2tG(rij, rik, 0, 2),
+        'd2x2yG': lambda rij, rik: d2q2tG(rij, rik, 0, 1),
+        'd1x2xG': lambda rij, rik: d1q2tG(rij, rik, 0, 0),
+        'd1y2yG': lambda rij, rik: d1q2tG(rij, rik, 1, 1),
+        'd1z2zG': lambda rij, rik: d1q2tG(rij, rik, 2, 2),
+        'd1y2zG': lambda rij, rik: d1q2tG(rij, rik, 1, 2),
+        'd1x2zG': lambda rij, rik: d1q2tG(rij, rik, 0, 2),
+        'd1x2yG': lambda rij, rik: d1q2tG(rij, rik, 0, 1),
+        'd1z2yG': lambda rij, rik: d1q2tG(rij, rik, 2, 1),
+        'd1z2xG': lambda rij, rik: d1q2tG(rij, rik, 2, 0),
+        'd1y2xG': lambda rij, rik: d1q2tG(rij, rik, 1, 0),
+        'cutoff': R_2
     }
 
