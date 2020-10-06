@@ -21,5 +21,5 @@
 
 from __future__ import absolute_import
 
-from .calculator import AbellTersoffBrenner, KumagaiTersoff
-from .parameters import Kumagai_CompMaterSci_39_457_Si
+from .calculator import AbellTersoffBrenner, KumagaiTersoff, StillingerWeber, TersoffIII
+from .parameters import Kumagai_CompMaterSci_39_457_Si, Stillinger_Weber_PhysRevB_31_8_5262
