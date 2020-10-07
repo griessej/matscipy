@@ -5,7 +5,7 @@ import numpy as np
 
 
 class AbellTersoffBrenner(Calculator):
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ['energy', 'forces', 'stress']
     default_parameters = {}
     name = 'ThreeBodyPotential'
 
@@ -102,7 +102,17 @@ class AbellTersoffBrenner(Calculator):
 
         f_n = np.transpose([fx_n, fy_n, fz_n])
 
-        self.results = {'energy': epot, 'forces': f_n}
+        # Virial 
+        virial_v = -np.array([r_pc[:, 0]*fx_p,              # xx       
+                              r_pc[:, 1]*fy_p,              # yy
+                              r_pc[:, 2]*fz_p,              # zz               
+                              r_pc[:, 1]*fz_p,              # yz
+                              r_pc[:, 0]*fz_p,              # xz
+                              r_pc[:, 0]*fy_p]).sum(axis=1) # xy        
+
+        self.results = {'energy': epot,
+                        'stress': virial_v/self.atoms.get_volume(),
+                        'forces': f_n}
 
     def calculate_hessian_matrix(self, atoms, divide_by_masses=False):
         """
