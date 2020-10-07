@@ -31,8 +31,8 @@ Stillinger_Weber_PhysRevB_31_8_5262 = {
     "B":         0.6022245584   ,
     "p":         4              ,
     "q":         0              ,
-    "a"          1.80           ,
-    "lambda_1":    21.0         ,
+    "a":         1.80           ,
+    "lambda_1":  21.0           ,
     "gamma":     1.20           ,
 }
 
