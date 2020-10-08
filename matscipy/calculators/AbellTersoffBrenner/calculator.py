@@ -949,6 +949,6 @@ def StillingerWeber():
         'd1z2yG': lambda rij, rik: d1q2tG(rij, rik, 2, 1),
         'd1z2xG': lambda rij, rik: d1q2tG(rij, rik, 2, 0),
         'd1y2xG': lambda rij, rik: d1q2tG(rij, rik, 1, 0),
-        'cutoff': R_2
+        'cutoff': sigma*a 
     }
 
