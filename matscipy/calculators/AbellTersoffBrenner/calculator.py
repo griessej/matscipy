@@ -847,14 +847,14 @@ def StillingerWeber():
     dg = lambda cost: 2 * (cost - costheta0)
     ddg = lambda cost: 2
 
-    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(rij-a*sigma)) * np.exp(gamma*sigma/(rik-a*sigma)) 
-    d1h = lambda rij, rik: -gamma * sigma / (rij - a * sigma) * hf(rij, rik)
-    d2h = lambda rij, rik: -gamma * sigma / (rik - a * sigma) * hf(rij, rik)
-    d11h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(rij-a*sigma, 4) * hf(rij, rik) + \
-                            2 * gamma * sigma / np.power(rij-a*sigma, 3) * hf(rij, rik)
-    d12h = lambda rij, rik: np.power(gamma*sigma, 2) / (np.power(rij-a*sigma, 2) * np.power(rik-a*sigma, 2)) * hf(rij, rik) 
-    d22h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(rik-a*sigma, 4) * hf(rij, rik) + \
-                            2 * gamma * sigma / np.power(rik-a*sigma, 3) * hf(rij, rik)
+    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(ab(rij)-a*sigma)) * np.exp(gamma*sigma/(ab(rik)-a*sigma)) 
+    d1h = lambda rij, rik: -gamma * sigma / (ab(rij) - a * sigma) * hf(rij, rik)
+    d2h = lambda rij, rik: -gamma * sigma / (ab(rik) - a * sigma) * hf(rij, rik)
+    d11h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(ab(rij)-a*sigma, 4) * hf(rij, rik) + \
+                            2 * gamma * sigma / np.power(ab(rij)-a*sigma, 3) * hf(rij, rik)
+    d12h = lambda rij, rik: np.power(gamma*sigma, 2) / (np.power(ab(rij)-a*sigma, 2) * np.power(ab(rik)-a*sigma, 2)) * hf(rij, rik) 
+    d22h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(ab(rik)-a*sigma, 4) * hf(rij, rik) + \
+                            2 * gamma * sigma / np.power(ab(rik)-a*sigma, 3) * hf(rij, rik)
 
     costh = lambda rij, rik: np.sum(rij*rik, axis=1) / (ab(rij)*ab(rik)) 
     c1q = lambda rij, rik, q: (rik[:, q]/ab(rik) - rij[:, q]/ab(rij) * costh(rij, rik)) / ab(rij)
