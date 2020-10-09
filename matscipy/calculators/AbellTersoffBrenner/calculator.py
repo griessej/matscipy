@@ -837,7 +837,7 @@ def StillingerWeber():
                         (A * B * p * epsilon / r) * np.power(sigma/r, p) * np.exp(sigma/(r-a*sigma))
     d2F = lambda r, xi: lambda_1
     d11F = lambda r, xi: sigma / np.power(r-a*sigma, 2) * (2 * U2(r) / (r-a*sigma) - d1F(r, xi)) + \
-                         (A * B * P * epsilon / r) * np.power(sigma/r, p) * (1/r * (p + 1) + sigma / np.power(r - a*sigma, 2)) * np.exp(sigma/(r-a*sigma))
+                         (A * B * p * epsilon / r) * np.power(sigma/r, p) * (1/r * (p + 1) + sigma / np.power(r - a*sigma, 2)) * np.exp(sigma/(r-a*sigma))
     d12F = lambda r, xi: 0
     d22F = lambda r, xi: 0
 
