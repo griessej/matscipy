@@ -130,10 +130,11 @@ class AbellTersoffBrenner(Calculator):
         ----------
         This method is currently only implemented for three dimensional systems
         """
-
+       
         # construct neighbor list
         i_p, j_p, r_p, r_pc = neighbour_list('ijdD', atoms=atoms,
                                              cutoff=2*self.cutoff)
+
         mask_p = r_p > self.cutoff
 
         nb_atoms = len(atoms)
@@ -832,22 +833,28 @@ def StillingerWeber():
     lambda_1 = 21.0 
     gamma = 1.20
 
-    F = lambda r, xi: U2(r) + lambda_1 * xi
-    d1F = lambda r, xi: -sigma / np.power(r-a*sigma, 2) * U2(r) - \
-                        (A * B * p * epsilon / r) * np.power(sigma/r, p) * np.exp(sigma/(r-a*sigma))
-    d2F = lambda r, xi: lambda_1
-    d11F = lambda r, xi: sigma / np.power(r-a*sigma, 2) * (2 * U2(r) / (r-a*sigma) - d1F(r, xi)) + \
-                         (A * B * p * epsilon / r) * np.power(sigma/r, p) * (1/r * (p + 1) + sigma / np.power(r - a*sigma, 2)) * np.exp(sigma/(r-a*sigma))
-    d12F = lambda r, xi: 0
-    d22F = lambda r, xi: 0
+    fc = lambda r: np.where(
+        r < sigma*a,
+        np.ones_like(r),
+        np.zeros_like(r)
+        )
+
+    F = lambda r, xi: fc(r) * U2(r) + lambda_1 * xi
+    d1F = lambda r, xi: fc(r) * (-sigma / np.power(r-a*sigma, 2) * U2(r) - \
+                        (A * B * p * epsilon / r) * np.power(sigma/r, p) * np.exp(sigma/(r-a*sigma)))
+    d2F = lambda r, xi: np.full_like(r, lambda_1)
+    d11F = lambda r, xi: fc(r) * (sigma / np.power(r-a*sigma, 2) * (2 * U2(r) / (r-a*sigma) - d1F(r, xi)) + \
+                         (A * B * p * epsilon / r) * np.power(sigma/r, p) * (1/r * (p + 1) + sigma / np.power(r - a*sigma, 2)) * np.exp(sigma/(r-a*sigma)))
+    d12F = lambda r, xi: np.zeros_like(r)
+    d22F = lambda r, xi: np.zeros_like(r)
 
     U2 = lambda r: A * epsilon * (B*np.power(sigma/r, p) - np.power(sigma/r, q)) * np.exp(sigma/(r-a*sigma))
 
     g = lambda cost: np.power(cost - costheta0, 2) 
     dg = lambda cost: 2 * (cost - costheta0)
-    ddg = lambda cost: 2
+    ddg = lambda cost: np.full_like(cost, 2.0)
 
-    hf = lambda rij, rik: epsilon * np.exp(gamma*sigma/(ab(rij)-a*sigma)) * np.exp(gamma*sigma/(ab(rik)-a*sigma)) 
+    hf = lambda rij, rik: fc(ab(rij)) * fc(ab(rik)) * epsilon * np.exp(gamma*sigma/(ab(rij)-a*sigma)) * np.exp(gamma*sigma/(ab(rik)-a*sigma)) 
     d1h = lambda rij, rik: -gamma * sigma / (ab(rij) - a * sigma) * hf(rij, rik)
     d2h = lambda rij, rik: -gamma * sigma / (ab(rik) - a * sigma) * hf(rij, rik)
     d11h = lambda rij, rik: np.power(gamma*sigma, 2) / np.power(ab(rij)-a*sigma, 4) * hf(rij, rik) + \
